@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <script 
+    src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.5/angular.js">
+  </script>
+ </head>
+
+ <body ng-app="myapp">
+  <div ng-controller="MyController" ng-init="getUsersFromLS()">
+    <form>
+      First Name: <input type="text" name="firstName" ng-model="myForm.firstName"> <br/>
+      Last Name: <input type="text" name="lastName"  ng-model="myForm.lastName"> <br/>
+      Age: <input type="number" name="age" ng-model="myForm.age"> <br/>
+      Gender: <input type="text" name="gender"  ng-model="myForm.gender"> <br/>
+      City: <input type="text" name="city" ng-model="myForm.city"> <br/>
+      State: <select  ng-model="state"> 
+      <option data-ng-repeat="s in states">{{s}}</option>
+      </select> <br/>
+      <button ng-click="register()">Register</button> 
+    </form>
+
+    <div>
+      {{myForm.firstName}} {{myForm.lastName}} {{myForm.age}} {{myForm.gender}} {{myForm.city}} {{state}}
+    </div>
+
+    <div class="pull-right">
+      <button ng-click="visible = !visible">Show/Hide</button>
+      <table  ng-show="visible" style="border: solid 1px pink;">
+        <tr style="border: solid 1px black">
+          <th style="border: solid 1px pink; color: blue">First Name</th>
+          <th style="border: solid 1px pink; color: blue">Last Name</th>
+          <th style="border: solid 1px pink; color: blue">Age</th>
+          <th style="border: solid 1px pink; color: blue">Gender</th>
+          <th style="border: solid 1px pink; color: blue">City</th>
+          <th style="border: solid 1px pink; color: blue">State</th>
+        </tr>
+        <tr ng-repeat="user in allRegUsers | orderBy: 'age' " style="border: solid 1px black">
+          <td>{{user.firstName}} </td>
+          <td>{{user.lastName}}</td>
+          <td>{{user.age}} </td>
+          <td>{{user.gender}} </td>
+          <td>{{user.city}} </td>
+          <td>{{user.state}} </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    angular.module("myapp", [])
+           .controller("MyController", function($scope) {
+
+            $scope.states = ["CA", "OR", "WA", "MT", "WI"];
+            $scope.allRegUsers = [];
+            $scope.visible = false;
+            
+            $scope.getUsersFromLS = function() {
+
+              if (typeof String.prototype.startsWith != 'function') {
+                String.prototype.startsWith = function (str){
+                  return this.indexOf(str) == 0;
+                };
+              }
+
+
+              var i = 0;
+              itemCount = localStorage.length;
+              $scope.items = {};
+              $scope.prefix = 'ang_ls_reg_user'
+              while (i < itemCount ) {
+                  //check if key prefix = ang_ls_reg_user
+                  key = localStorage.key( i );
+
+                  if(key.startsWith($scope.prefix)){
+
+                    // retrieve the value of the current item
+                    $scope.items[key] = localStorage.getItem( key );
+                    $scope.obj = angular.fromJson($scope.items[key] );
+                    $scope.allRegUsers.push($scope.obj);
+                    i++;
+                  }
+              }
+              console.log($scope.allRegUsers);
+            }
+
+            $scope.register = function() {
+              $scope.unique = true;
+              for (i = 0; i < $scope.allRegUsers.length; i++) { 
+                if ($scope.myForm.firstName == $scope.allRegUsers[i].firstName && 
+                    $scope.myForm.lastName == $scope.allRegUsers[i].lastName){
+                      $scope.unique = false;
+                }
+              }
+
+              if($scope.unique) {
+
+                $scope.newUser = {
+                  firstName: $scope.myForm.firstName,
+                  lastName: $scope.myForm.lastName,
+                  age: $scope.myForm.age,
+                  gender: $scope.myForm.gender,
+                  city: $scope.myForm.city,
+                  state: $scope.state
+                }
+
+                //If user is unique add to local array
+                $scope.allRegUsers.push($scope.newUser);
+
+                //add to local storage
+                $scope.key = 'ang_ls_reg_user' + $scope.myForm.firstName + $scope.myForm.lastName;
+                $scope.newUser = JSON.stringify($scope.newUser);
+                localStorage.setItem($scope.key, $scope.newUser);
+
+              } else {
+                alert("Not Unique");
+              }
+            }
+              
+           });
+  </script>
+ </body>
+</html>
